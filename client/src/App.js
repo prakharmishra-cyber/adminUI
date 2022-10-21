@@ -21,6 +21,9 @@ function App() {
   };
   const onCloseModal = () => {
     setOpen(false);
+    setName("");
+    setEmail("");
+    setRole("");
   };
 
   useEffect(() => {
