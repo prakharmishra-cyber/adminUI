@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import 'react-responsive-modal/styles.css';
-import { Modal } from 'react-responsive-modal';
+import "react-responsive-modal/styles.css";
+import { Modal } from "react-responsive-modal";
 import "./App.css";
 
 function App() {
@@ -9,6 +9,19 @@ function App() {
   const [maxPages, setMaxPages] = useState(null);
   const [deleteBucket, setDeleteBucket] = useState([]);
   const [alloption, setAlloption] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const [updateIdx, setUpdateIdx] = useState(null);
+
+  const onOpenModal = (id) => {
+    setOpen(true);
+    setUpdateIdx(id);
+  };
+  const onCloseModal = () => {
+    setOpen(false);
+  };
 
   useEffect(() => {
     //setIsloading(true);
@@ -27,7 +40,6 @@ function App() {
   }, []);
 
   const handleOneDelete = (id) => {
-    alert("clicked");
     setData(data.filter((value) => value.id !== id));
   };
 
@@ -67,14 +79,65 @@ function App() {
     }
   };
 
+  const handleUpdateSubmit = () => {
+    setData(
+      data.map((value) => {
+        if (value.id === updateIdx) {
+          return {
+            id: updateIdx,
+            name: name,
+            email: email,
+            role: role,
+          };
+        } else {
+          return value;
+        }
+      })
+    );
+    setOpen(false);
+    setName("");
+    setEmail("");
+    setRole("");
+  };
+
   return (
     <div>
       <div className="container">
         <input placeholder="Search by name, email or role" />
+        <Modal open={open} onClose={onCloseModal} center>
+          <h2>Enter Updated Details</h2>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <input
+              value={name}
+              placeholder="Enter Name"
+              onChange={(e) => setName(e.target.value)}
+              className="updateinput"
+            />
+            <input
+              value={email}
+              placeholder="Enter Email"
+              onChange={(e) => setEmail(e.target.value)}
+              className="updateinput"
+            />
+            <input
+              value={role}
+              placeholder="Enter Role"
+              onChange={(e) => setRole(e.target.value)}
+              className="updateinput"
+            />
+          </div>
+          <button className="submitBtn" onClick={handleUpdateSubmit}>
+            Submit
+          </button>
+        </Modal>
         <table>
           <tr>
             <th>
-              <input type="checkbox" checked={alloption} onChange={(e) => handleAllDelete(e)} />
+              <input
+                type="checkbox"
+                checked={alloption}
+                onChange={(e) => handleAllDelete(e)}
+              />
             </th>
             <th>Name</th>
             <th>Email</th>
@@ -109,6 +172,7 @@ function App() {
                         stroke="currentColor"
                         className="w-6 h-6 svgs"
                         width={20}
+                        onClick={() => onOpenModal(value.id)}
                       >
                         <path
                           strokeLinecap="round"
