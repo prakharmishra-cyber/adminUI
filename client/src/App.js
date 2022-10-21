@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
+import 'react-responsive-modal/styles.css';
+import { Modal } from 'react-responsive-modal';
 import "./App.css";
 
 function App() {
   const [data, setData] = useState(null);
-  const [isloading, setIsloading] = useState(true);
   const [pageno, setPageno] = useState(1);
   const [maxPages, setMaxPages] = useState(null);
+  const [deleteBucket, setDeleteBucket] = useState([]);
+  const [alloption, setAlloption] = useState(false);
 
   useEffect(() => {
-    setIsloading(true);
+    //setIsloading(true);
     fetch(
       "https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json"
     )
@@ -16,12 +19,53 @@ function App() {
       .then((res) => {
         console.log(res);
         setData(res);
-        setIsloading(false);
+        //setIsloading(false);
         setMaxPages(Math.ceil(res.length / 10));
       })
       .catch((error) => console.log(error));
-    setIsloading(false);
+    //setIsloading(false);
   }, []);
+
+  const handleOneDelete = (id) => {
+    alert("clicked");
+    setData(data.filter((value) => value.id !== id));
+  };
+
+  const handleBucketAddRem = (e, id) => {
+    console.log(e.target.checked);
+
+    if (!deleteBucket.includes(id)) {
+      setDeleteBucket([...deleteBucket, id]);
+    } else {
+      setDeleteBucket(deleteBucket.filter((value) => value !== id));
+    }
+  };
+
+  const handleMultipleDelete = () => {
+    setData(
+      data.filter((value) => {
+        return !deleteBucket.includes(value.id);
+      })
+    );
+    setDeleteBucket([]);
+    setAlloption(false);
+  };
+
+  const handleAllDelete = (e) => {
+    if (e.target.checked) {
+      setAlloption(true);
+      setDeleteBucket(
+        data.map((value, index) => {
+          if (index >= (pageno - 1) * 10 && index <= (pageno - 1) * 10 + 9) {
+            return value.id;
+          }
+        })
+      );
+    } else {
+      setAlloption(false);
+      setDeleteBucket([]);
+    }
+  };
 
   return (
     <div>
@@ -30,7 +74,7 @@ function App() {
         <table>
           <tr>
             <th>
-              <input type="checkbox" />
+              <input type="checkbox" checked={alloption} onChange={(e) => handleAllDelete(e)} />
             </th>
             <th>Name</th>
             <th>Email</th>
@@ -40,11 +84,18 @@ function App() {
 
           {data &&
             data.map((value, index) => {
-              if (index >= pageno - 1 && index <= pageno + 8) {
+              if (
+                index >= (pageno - 1) * 10 &&
+                index <= (pageno - 1) * 10 + 9
+              ) {
                 return (
                   <tr>
                     <td>
-                      <input type="checkbox" />
+                      <input
+                        type="checkbox"
+                        checked={deleteBucket.includes(value.id)}
+                        onChange={(e) => handleBucketAddRem(e, value.id)}
+                      />
                     </td>
                     <td>{value.name}</td>
                     <td>{value.email}</td>
@@ -56,7 +107,7 @@ function App() {
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="currentColor"
-                        className="w-6 h-6"
+                        className="w-6 h-6 svgs"
                         width={20}
                       >
                         <path
@@ -71,9 +122,10 @@ function App() {
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="red"
-                        className="w-6 h-6"
+                        className="w-6 h-6 svgs"
                         width={20}
-                        style={{marginLeft:"3px"}}
+                        style={{ marginLeft: "10px" }}
+                        onClick={() => handleOneDelete(value.id)}
                       >
                         <path
                           strokeLinecap="round"
@@ -87,6 +139,37 @@ function App() {
               }
             })}
         </table>
+        <div className="options">
+          <div>
+            <button className="deleteSel" onClick={handleMultipleDelete}>
+              Delete Selected
+            </button>
+          </div>
+          {pageno !== 1 && (
+            <button onClick={() => setPageno(1)}> &lt;&lt;</button>
+          )}
+          {pageno === 1 && <button disabled> &lt;&lt;</button>}
+          {pageno - 1 >= 1 && (
+            <button onClick={() => setPageno(pageno - 1)}>&lt;</button>
+          )}
+          {pageno - 1 < 1 && <button disabled>&lt;</button>}
+          <button onClick={() => setPageno(1)}>1</button>
+          <button onClick={() => setPageno(2)}>2</button>
+          <button onClick={() => setPageno(3)}>3</button>
+          <button onClick={() => setPageno(4)}>4</button>
+          <button onClick={() => setPageno(5)}>5</button>
+          {pageno + 1 > maxPages && <button disabled>&gt;</button>}
+          {pageno + 1 <= maxPages && (
+            <button onClick={() => setPageno(pageno + 1)}>&gt;</button>
+          )}
+          {pageno === maxPages && <button disabled> &gt;&gt;</button>}
+          {pageno !== maxPages && (
+            <button onClick={() => setPageno(maxPages)}> &gt;&gt;</button>
+          )}
+          <div>
+            <button className="reset">Reset</button>
+          </div>
+        </div>
       </div>
     </div>
   );
